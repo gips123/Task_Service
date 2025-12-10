@@ -12,10 +12,10 @@ if not os.path.exists(model_path):
     raise FileNotFoundError(f"Model directory not found: {model_path}")
 
 try:
-tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
-model = AutoModelForSequenceClassification.from_pretrained(
-    model_path, dtype=torch.float16, local_files_only=True
-)
+    tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_path, dtype=torch.float16, local_files_only=True
+    )
 except Exception as e:
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -75,8 +75,3 @@ def predict(text):
         "label_name": label_name,
         "confidence": confidence
     }
-
-if __name__ == "__main__":
-    result = predict(test_texts)
-    print(f"Text: {test_texts}")
-    print(f"Prediction: {result}")
