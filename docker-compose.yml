@@ -45,7 +45,6 @@ services:
       - task
       - classifier
       - schedule
-      - sensor
       - dashboard
     environment:
       - JWT_SECRET=your-secret-key-change-in-production
@@ -117,19 +116,6 @@ services:
       - DB_USER=root
       - DB_PASSWORD=root
       - DB_NAME=uas_service
-      - RABBIT_URL=amqp://rabbitmq
-
-  sensor:
-    build:
-      context: .
-      dockerfile: docker/sensor.Dockerfile
-    container_name: uas-sensor
-    ports:
-      - "3000:3000"
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    environment:
       - RABBIT_URL=amqp://rabbitmq
 
   dashboard:
