@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Task Management System</h1>
+            <div class="header-actions">
+                <input type="number" id="userIdInput" placeholder="User ID" value="1" class="user-input">
+                <button onclick="loadTasks()" class="btn btn-primary">Refresh</button>
+            </div>
+        </header>
+
+        <!-- Stats Section -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <div class="stat-value" id="completedTasks">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <div class="stat-value" id="inProgressTasks">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <div class="stat-value" id="pendingTasks">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div class="action-buttons">
+                <button onclick="openCreateModal()" class="btn btn-success">
+                    Create New Task
+                </button>
+                <button onclick="openWorkingSlotsModal()" class="btn btn-primary">
+                    Working Slots
+                </button>
+                <button onclick="openBlacklistModal()" class="btn btn-primary">
+                    Blacklist
+                </button>
+                <button onclick="loadSchedule()" class="btn btn-primary">
+                    View Schedule
+                </button>
+                <button onclick="openActivityTracker()" class="btn btn-primary">
+                    Activity Tracker
+                </button>
+            </div>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="table-container">
+            <table class="tasks-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Duration</th>
+                        <th>Start Schedule</th>
+                        <th>End Schedule</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTableBody">
+                    <tr>
+                        <td colspan="10" class="empty-state">Loading tasks...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Create New Task</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="taskForm" onsubmit="saveTask(event)">
+                <input type="hidden" id="taskId">
+                
+                <div class="form-group">
+                    <label for="description">Description *</label>
+                    <textarea id="description" rows="3" required placeholder="Enter task description..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="priority">Priority *</label>
+                        <select id="priority" required>
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">Duration (minutes) *</label>
+                        <input type="number" id="duration" min="1" required placeholder="e.g. 60">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deadline">Deadline</label>
+                        <input type="datetime-local" id="deadline">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status">
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Overdue">Overdue</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="isLocked">
+                            <input type="checkbox" id="isLocked">
+                            Locked Task
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Working Slots Modal -->
+    <div id="workingSlotsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Working Slots</h2>
+                <span class="close" onclick="closeWorkingSlotsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <button onclick="openCreateWorkingSlotModal()" class="btn btn-success" style="margin-bottom: 20px;">
+                    Add Working Slot
+                </button>
+                <div id="workingSlotsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Working Slot Modal -->
+    <div id="createWorkingSlotModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Working Slot</h2>
+                <span class="close" onclick="closeCreateWorkingSlotModal()">&times;</span>
+            </div>
+            <form id="workingSlotForm" onsubmit="saveWorkingSlot(event)">
+                <div class="form-group">
+                    <label for="startTime">Start Time *</label>
+                    <input type="time" id="startTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="endTime">End Time *</label>
+                    <input type="time" id="endTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="workingDays">Working Days *</label>
+                    <select id="workingDays" required>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                        <option value="All Day" selected>All Day</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeCreateWorkingSlotModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Blacklist Modal -->
+    <div id="blacklistModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Blacklist Apps</h2>
+                <span class="close" onclick="closeBlacklistModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addBlacklistForm" onsubmit="addToBlacklist(event)">
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <input type="text" id="appName" placeholder="App name (e.g. YouTube)" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Add</button>
+                    </div>
+                </form>
+                <div id="blacklistList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>Schedule</h2>
+                <span class="close" onclick="closeScheduleModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="scheduleContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: uas-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: uas_service
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./uas_service.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: uas-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/gateway.Dockerfile
+    container_name: uas-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth
+      - task
+      - classifier
+      - schedule
+      - sensor
+      - dashboard
+    environment:
+      - JWT_SECRET=your-secret-key-change-in-production
+      - AUTH_URL=http://auth:4000
+      - TASK_URL=http://task:8000
+      - SCHEDULE_URL=http://schedule:3001
+      - DASHBOARD_URL=http://dashboard:3002
+      - SENSOR_URL=http://sensor:3000
+      - CLASSIFIER_URL=http://classifier:5001
+
+  auth:
+    build:
+      context: .
+      dockerfile: docker/auth.Dockerfile
+    container_name: uas-auth
+    ports:
+      - "4000:4000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=uas_service
+      - JWT_SECRET=your-secret-key-change-in-production
+
+  task:
+    build:
+      context: .
+      dockerfile: docker/task.Dockerfile
+    container_name: uas-task
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=uas_service
+      - RABBIT_URL=amqp://rabbitmq
+
+  classifier:
+    build:
+      context: .
+      dockerfile: docker/classifier.Dockerfile
+    container_name: uas-classifier
+    ports:
+      - "5001:5001"
+
+  schedule:
+    build:
+      context: .
+      dockerfile: docker/schedule.Dockerfile
+    container_name: uas-schedule
+    ports:
+      - "3001:3001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=uas_service
+      - RABBIT_URL=amqp://rabbitmq
+
+  sensor:
+    build:
+      context: .
+      dockerfile: docker/sensor.Dockerfile
+    container_name: uas-sensor
+    ports:
+      - "3000:3000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - RABBIT_URL=amqp://rabbitmq
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/dashboard.Dockerfile
+    container_name: uas-dashboard
+    ports:
+      - "3002:3002"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - RABBIT_URL=amqp://rabbitmq
+
+  webapp:
+    build:
+      context: .
+      dockerfile: docker/webapp.Dockerfile
+    container_name: uas-webapp
+    ports:
+      - "3003:3003"
+    depends_on:
+      - gateway
+
+volumes:
+  mysql_data:
+

@@ -1,0 +1,307 @@
+# Auth Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: uas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: uas-auth:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - configMapRef:
+                name: uas-config
+            - secretRef:
+                name: uas-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: uas-service
+spec:
+  selector:
+    app: auth
+  ports:
+    - port: 4000
+      targetPort: 4000
+---
+# Task Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task
+  namespace: uas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task
+  template:
+    metadata:
+      labels:
+        app: task
+    spec:
+      containers:
+        - name: task
+          image: uas-task:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: uas-config
+            - secretRef:
+                name: uas-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task
+  namespace: uas-service
+spec:
+  selector:
+    app: task
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+# Classifier Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: classifier
+  namespace: uas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: classifier
+  template:
+    metadata:
+      labels:
+        app: classifier
+    spec:
+      containers:
+        - name: classifier
+          image: uas-classifier:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: classifier
+  namespace: uas-service
+spec:
+  selector:
+    app: classifier
+  ports:
+    - port: 5001
+      targetPort: 5001
+---
+# Schedule Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schedule
+  namespace: uas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schedule
+  template:
+    metadata:
+      labels:
+        app: schedule
+    spec:
+      containers:
+        - name: schedule
+          image: uas-schedule:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: uas-config
+            - secretRef:
+                name: uas-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schedule
+  namespace: uas-service
+spec:
+  selector:
+    app: schedule
+  ports:
+    - port: 3001
+      targetPort: 3001
+---
+# Sensor Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor
+  namespace: uas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sensor
+  template:
+    metadata:
+      labels:
+        app: sensor
+    spec:
+      containers:
+        - name: sensor
+          image: uas-sensor:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: uas-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensor
+  namespace: uas-service
+spec:
+  selector:
+    app: sensor
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+# Dashboard Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: uas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+    spec:
+      containers:
+        - name: dashboard
+          image: uas-dashboard:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3002
+          envFrom:
+            - configMapRef:
+                name: uas-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  namespace: uas-service
+spec:
+  selector:
+    app: dashboard
+  ports:
+    - port: 3002
+      targetPort: 3002
+---
+# Gateway Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: uas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: uas-gateway:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: uas-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: uas-service
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+---
+# Web App
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  namespace: uas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+        - name: webapp
+          image: uas-webapp:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3003
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  namespace: uas-service
+spec:
+  selector:
+    app: webapp
+  ports:
+    - port: 3003
+      targetPort: 3003
+  type: LoadBalancer
+
+
